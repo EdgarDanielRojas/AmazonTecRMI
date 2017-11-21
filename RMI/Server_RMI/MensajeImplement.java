@@ -1,11 +1,4 @@
-package amazonModel;
-
-import java.io.PrintWriter;
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.rmi.RemoteException;
 import java.util.StringTokenizer;
 
 import java.sql.DriverManager;
@@ -18,15 +11,17 @@ import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-public class AmazonADjdbc
+public class MensajeImplement implements MensajeInterface
 {
     private Connection conexion;
     private Statement statement;
     
     private AlbumDP albumdp;
     private String error="none";
-    public AmazonADjdbc()
+    
+    public MensajeImplement() throws RemoteException
     {
+    	super();
         try
         {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -53,9 +48,10 @@ public class AmazonADjdbc
             System.out.println("Error: "+sqle);
             error="Found 4";
         }
+        
     }
     
-    public String altaUsuario(String email,String nombre, String direccion, String notarjeta, String tarjeta, String password, String telefono){
+    public String altaUsuario(String email,String nombre, String direccion, String notarjeta, String tarjeta, String password, String telefono) throws RemoteException {
     	String resultado;
     	String insert = "INSERT INTO cliente(email,nombre,direccion,numerodetarjeta,tarjeta,password,telefono) VALUES('"+email+"','"+nombre+"','"+direccion+"','"+notarjeta+"','"+tarjeta+"','"+password+"','"+telefono+"');";
     	try{
@@ -71,7 +67,7 @@ public class AmazonADjdbc
     	return resultado;
     }
     
-    public String idCliente(String email){
+    public String idCliente(String email) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -113,7 +109,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public void actualizarInventario(String album,String cantidad){
+    public void actualizarInventario(String album,String cantidad) throws RemoteException{
     	String resultado;
     	String insert = "UPDATE album set existencia=existencia-"+cantidad+" where id_album="+album+";";
     	try{
@@ -128,7 +124,7 @@ public class AmazonADjdbc
     	}
     }
     
-    public String infoDiscoVenta(String album){
+    public String infoDiscoVenta(String album) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -170,7 +166,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String nombreCliente(String id){
+    public String nombreCliente(String id) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -212,7 +208,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String compra(String album,String cliente, String cantidad){
+    public String compra(String album,String cliente, String cantidad) throws RemoteException{
     	String resultado;
     	String insert = "INSERT INTO compra(cliente,album,cantidad) VALUES("+idCliente(cliente)+","+album+","+cantidad+");";
     	actualizarInventario(album,cantidad);
@@ -234,7 +230,7 @@ public class AmazonADjdbc
     	return resultado;
     }
      
-    public String infoAlbum(String id){
+    public String infoAlbum(String id) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -277,7 +273,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String verifyUser(String email,String password){
+    public String verifyUser(String email,String password) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -322,7 +318,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String obtenerCanciones(String album){
+    public String obtenerCanciones(String album) throws RemoteException{
     	String datos="";
     	String info="";
         String query;
@@ -372,7 +368,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String obtenerArtista(String id){
+    public String obtenerArtista(String id) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -414,7 +410,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String obtenerId(String artista){
+    public String obtenerId(String artista) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -443,6 +439,7 @@ public class AmazonADjdbc
             statement.close();
             
             System.out.println(conexion.nativeSQL(query));
+            System.out.println(datos);
         }
         catch(SQLException sqle)
         {
@@ -456,7 +453,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String obtenerCosto(String id){
+    public String obtenerCosto(String id) throws RemoteException{
     	String datos="";
         String query;
         ResultSet tr;
@@ -498,7 +495,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String obtenerAlbums(String artista)
+    public String obtenerAlbums(String artista) throws RemoteException
     {
         String datos="";
         String query;
@@ -507,12 +504,12 @@ public class AmazonADjdbc
         artista= obtenerId(artista);
         query = "SELECT * FROM album WHERE artista="+artista+";";
         //return query+error;
+        
         try
         {
             // 1. Abrir archivo
             //archivoEntrada = new BufferedReader(new FileReader("Clientes.txt"));
             statement = conexion.createStatement();
-            
             // 2. Procesar datos
             //while(archivoEntrada.ready())
             //	datos = datos + archivoEntrada.readLine() + "\n";
@@ -549,7 +546,7 @@ public class AmazonADjdbc
         return datos;
     }
     
-    public String obtenerCatalogo()
+    public String obtenerCatalogo() throws RemoteException
     {
         String datos="";
         String query;

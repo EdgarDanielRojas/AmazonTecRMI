@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContext;
 
-import javax.mail.Authenticator;
+/*import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -18,7 +18,7 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMessage;*/
 
 import java.util.Date;
 import java.util.Properties;
@@ -26,12 +26,17 @@ import java.util.Properties;
 import java.io.PrintWriter;
 import java.io.IOException;
 
-import amazonModel.AmazonADjdbc;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
+
+//import amazonModel.AmazonADjdbc;
+
+
 
 public class ServletAmazon extends HttpServlet
 {
-private AmazonADjdbc amazonad = new AmazonADjdbc();
-private String host;
+//private AmazonADjdbc amazonad = new AmazonADjdbc();
+	/*private String host;
     private String port;
     private String user;
     private String pass;
@@ -43,28 +48,34 @@ public void init() {
         port = context.getInitParameter("port");
         user = context.getInitParameter("user");
         pass = context.getInitParameter("pass");
-    }
+    }*/
+// Atributos RMI
+Registry registro; //= LocateRegistry.getRegistry("localhost");
+MensajeInterface remoteObject;// = (MensajeInterface)registro.lookup("serverRMIDinamico");
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
   {
+  	String mensaje = "";
   	String albums="",artista="",idAlbum="",nombreAlbum="";
   	try{
+  		registro = LocateRegistry.getRegistry("localhost");
+		remoteObject = (MensajeInterface)registro.lookup("serverRMIDinamico");
   		String boton = request.getParameter("bIngresado");
   		if(boton.equals("Consulta Canciones")){
   			nombreAlbum = request.getParameter("album");
   			idAlbum = request.getParameter("id");
-	  		String canciones = amazonad.obtenerCanciones(idAlbum);
+	  		String canciones = remoteObject.obtenerCanciones(idAlbum);
 	  		response.sendRedirect("Cancion.jsp?cancion="+canciones+"&album="+nombreAlbum+"&id="+idAlbum);
   		}
   		else if(boton.equals("Consultar Albums")){
 	  		artista  = request.getParameter("tfArtista");
-	  		albums=amazonad.obtenerCatalogo();
+	  		albums=remoteObject.obtenerCatalogo();
 	  		response.sendRedirect("Respuesta.jsp?artista=Todos&album="+albums);	
 	  	}
 	  	else if(boton.equals("Buscar Artista")){
 	  		artista  = request.getParameter("tfArtista");
 	  		if(artista!=null){
-	  			albums=amazonad.obtenerAlbums(artista);
+	  			albums=remoteObject.obtenerAlbums(artista);
 	  			if(albums.equals("NO_LOCALIZADO")){
 	  				response.sendRedirect("NoLocalizado.jsp");
 	  			}
@@ -79,17 +90,17 @@ public void init() {
 	  	else if(boton.equals("Comprar Album")){
 	  		nombreAlbum = request.getParameter("album");
   			idAlbum = request.getParameter("id");
-  			String costo= amazonad.obtenerCosto(idAlbum);
+  			String costo= remoteObject.obtenerCosto(idAlbum);
   			response.sendRedirect("Compra.jsp?album="+nombreAlbum+"&idAlbum="+idAlbum+"&costo="+costo);
 	  	}
 	  	else if(boton.equals("Sign in")){
 	  		String email,password;
 	  		email = request.getParameter("tfEmail");
 	  		password = request.getParameter("tfPassword");
-	  		String resultado = amazonad.verifyUser(email,password);
+	  		String resultado = remoteObject.verifyUser(email,password);
 	  		if(!resultado.equals("NO_LOCALIZADO")){
 	  			idAlbum=request.getParameter("id");
-	  			String infoAlbum = amazonad.infoAlbum(idAlbum);
+	  			String infoAlbum = remoteObject.infoAlbum(idAlbum);
 		  		response.sendRedirect("Comprar.jsp?idAlbum="+idAlbum+"&"+resultado+"&"+infoAlbum);
 		  		
 	  		}
@@ -111,10 +122,10 @@ public void init() {
 	  		notarjeta = request.getParameter("tfNoTarjeta");
 	  		tarjeta= request.getParameter("tfTarjeta");
 	  		idAlbum= request.getParameter("id");
-	  		String resultado = amazonad.altaUsuario(email,nombre,direccion,notarjeta,tarjeta,password,telefono);
+	  		String resultado = remoteObject.altaUsuario(email,nombre,direccion,notarjeta,tarjeta,password,telefono);
 	  		if(resultado.equals("Captura correcta")){
 	  			if(idAlbum!=null){
-	  				String infoAlbum = amazonad.infoAlbum(idAlbum);
+	  				String infoAlbum = remoteObject.infoAlbum(idAlbum);
 		  			response.sendRedirect("Comprar.jsp?idAlbum="+idAlbum+"&email="+email+"&nombre="+nombre+"&direccion="+direccion+"&notarjeta="+notarjeta+"&"+infoAlbum);
 		  		}
 		  		else{
@@ -133,8 +144,8 @@ public void init() {
 	  		idAlbum= request.getParameter("id");
 	  		String email = request.getParameter("email");
 	  		String cantidad= request.getParameter("tfCantidad");
-	  		String resultado = amazonad.compra(idAlbum,email,cantidad);
-	  		sendEmail(host, port, user, pass, email, "Confirmacion de Compra",resultado);
+	  		String resultado = remoteObject.compra(idAlbum,email,cantidad);
+	  		//sendEmail(host, port, user, pass, email, "Confirmacion de Compra",resultado);
 	  		response.sendRedirect("Exito.jsp");
 	  	}	
   		}	
@@ -149,7 +160,7 @@ public void init() {
   {
       doGet(request,response);
   }
-  
+  /*
   public static void sendEmail(String host, String port,
             final String userName, final String password, String toAddress,
             String subject, String message) throws AddressException,
@@ -184,5 +195,5 @@ public void init() {
         // sends the e-mail
         Transport.send(msg);
  
-    }
+    }*/
 }
